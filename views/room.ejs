@@ -1,0 +1,40 @@
+<h1>Welcome to chat room!</h1>
+<input type="text" id="message">
+<button id="send">Send</button>
+<div id="messages"></div>
+<script>
+    let id = -1
+
+    const ws = new WebSocket('ws://localhost:3000/chatroom')
+    ws.onmessage = function(event) {
+        const data = JSON.parse(event.data)
+        console.log(data)
+        if(data.type === 'connect') {
+            id = data.id
+        } else if(data.type === 'message') {
+            const messages = document.querySelector('#messages')
+            const message = document.createElement('div')
+            message.innerText = `${data.id}: ${data.message}`
+            if(data.id === id) {
+                message.style.color = 'blue'
+            }
+            messages.appendChild(message)
+            messages.scrollTop = messages.scrollHeight
+        } else {
+            console.error('Unknown message type: ' + data.type)
+        }
+    }
+    document.querySelector('#send').onclick = function() {
+        const message = document.querySelector('#message').value
+        ws.send(message)
+        document.querySelector('#message').value = ''
+    }
+</script>
+<style>
+    #messages {
+        height: 300px;
+        overflow: auto;
+        border: 1px solid #ccc;
+        padding: 10px;
+    }
+</style>
